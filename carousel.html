@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .container {
+        margin: 0 auto;
+        width: 640px;
+        height: 420px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .page {
+        position: absolute;
+        width: 640px;
+        height: 420px;
+      }
+
+      .left-in-enter {
+        left: -100%;
+      }
+
+      .left-in-enter-active,
+      .left-in-leave-active {
+        transition: left 0.5s;
+      }
+
+      .left-in-enter-to,
+      .left-in-leave {
+        left: 0%;
+      }
+
+      .left-in-leave-to {
+        left: 100%;
+      }
+
+      /*right*/
+
+      .right-in-enter {
+        left: 100%;
+      }
+
+      .right-in-enter-active,
+      .right-in-leave-active {
+        transition: left 0.5s;
+      }
+
+      .right-in-enter-to,
+      .right-in-leave {
+        left: 0%;
+      }
+
+      .right-in-leave-to {
+        left: -100%;
+      }
+
+      .container > button,
+      .container .option {
+        position: absolute;
+        z-index: 100;
+      }
+
+      .container .btn-left {
+        top: 50%;
+        left: 20px;
+        transform: translateY(-50%);
+      }
+
+      .container .btn-right {
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+      }
+
+      .container .btn-left,
+      .container .btn-right {
+        border: none;
+        font-size: 25px;
+        line-height: 25px;
+        width: 35px;
+        height: 35px;
+        text-align: center;
+        padding: 5px 0;
+        border-radius: 50%;
+        cursor: pointer;
+        color: #ccc;
+        background-color: rgb(0, 0, 0, 0.75);
+      }
+
+      .container .option {
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .index {
+        width: 15px;
+        height: 15px;
+        background: #ccc;
+        border-radius: 50%;
+        margin: 0 10px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .index.active {
+        background-color: greenyellow;
+      }
+    </style>
+    <title>Document</title>
+
+    <div id="app">
+      <div class="container">
+        <transition-group tag="div" :name="transitionName">
+          <!-- mouseover and mouseout 用於自動輪播功能開啟時，針對停止輪播與開始自動輪播 -->
+          <div
+            class="page"
+            v-for="(img,index) of imgs"
+            :key="img.id"
+            v-show="index === show"
+            @mouseover="stopTimer"
+            @mouseout="startTimer"
+          >
+            <img :src="img.url" />
+          </div>
+        </transition-group>
+        <button @click="setShow(show - 1)" class="btn-left">
+          <i class="fa-solid fa-angle-left"></i>
+        </button>
+        <div class="option">
+          <span v-for="num of imgs.length">
+            <button
+              @click="setShow(num - 1)"
+              :class="{active : setClass(num - 1)}"
+              class="index"
+            ></button>
+          </span>
+        </div>
+        <button @click="setShow(show + 1)" class="btn-right">
+          <i class="fa-solid fa-angle-right"></i>
+        </button>
+      </div>
+    </div>
+  </head>
+
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.13/dist/vue.js"></script>
+    <script
+      src="https://kit.fontawesome.com/6c92ff04b8.js"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      let timer;
+      const interval = 2000;
+
+      const vm = new Vue({
+        el: "#app",
+        data() {
+          return {
+            imgs: [
+              {
+                url: "https://i.postimg.cc/c4P2C2ZV/pexels-anna-tarazevich-6712456.jpg",
+                id: 0,
+              },
+              {
+                url: "https://i.postimg.cc/SR2VpQXj/pexels-anna-tarazevich-6900713.jpg",
+                id: 1,
+              },
+              {
+                url: "https://i.postimg.cc/1zrjWz6Q/pexels-james-lee-6054896.jpg",
+                id: 2,
+              },
+              {
+                url: "https://i.postimg.cc/jSN97cSC/pexels-kei-scampa-4894421.jpg",
+                id: 3,
+              },
+              {
+                url: "https://i.postimg.cc/g0W7qhxs/pexels-mikhail-nilov-6942787.jpg",
+                id: 4,
+              },
+            ],
+            show: 0,
+            transitionName: "left-in",
+          };
+        },
+        mounted() {
+          //自動輪播:可選擇要不要開起
+          timer = setInterval(this.nextShow, interval);
+        },
+        methods: {
+          setShow(index) {
+            this.show = index;
+          },
+          nextShow() {
+            this.show++;
+          },
+          setClass(index) {
+            if (this.show === index) {
+              return true;
+            }
+          },
+          stopTimer() {
+            clearInterval(timer);
+          },
+          startTimer() {
+            timer = setInterval(this.nextShow, interval);
+          },
+        },
+        watch: {
+          show(newValue, oldValue) {
+            if (newValue > this.imgs.length - 1) {
+              this.show = 0;
+            } else if (newValue < 0) {
+              this.show = this.imgs.length - 1;
+            } else {
+              if (oldValue < 0) {
+                this.transitionName = "left-in";
+              } else if (oldValue > this.imgs.length - 1) {
+                this.transitionName = "right-in";
+              } else {
+                this.transitionName =
+                  newValue > oldValue ? "right-in" : "left-in";
+              }
+            }
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
